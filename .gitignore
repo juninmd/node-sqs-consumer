@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,node,VisualStudioCode
 
 ### Node ###
+envs/*
 # Logs
 logs
 *.log

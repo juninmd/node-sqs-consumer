@@ -7,25 +7,21 @@ import { Consumer } from 'sqs-consumer';
 export default class SqsConsumer {
   private static instance: SqsConsumer;
   public consumer: Consumer;
-  public options: any = {};
 
   public static getInstance(): SqsConsumer {
     if (!SqsConsumer.instance) {
-      SqsConsumer.instance = new SqsConsumer();
+      const options: OptionsConsumer = configs.aws;
+      SqsConsumer.instance = new SqsConsumer(options);
     }
     return SqsConsumer.instance;
   }
 
-  private constructor() {
-    AWS.config.update({
-      region: regionConsumer,
-      accessKeyId: accessId,
-      secretAccessKey: secretId,
-    });
+  private constructor(options: OptionsConsumer) {
+    AWS.config.update(options);
 
     this.consumer = Consumer.create({
-      batchSize: Number(batchSizeConsumer),
-      queueUrl: urlQueue,
+      batchSize: options.batchSize,
+      queueUrl: options.queueUrl,
       sqs: new AWS.SQS({
         httpOptions: {
           agent: new https.Agent({
@@ -33,29 +29,47 @@ export default class SqsConsumer {
           }),
         },
       }),
+      handleMessage: this.handleMessage,
     });
 
+    this.consumer.on('error', this.onError);
+    this.consumer.on('processing_error', this.onProcessingError);
+    this.consumer.on('timeout_error', this.onTimeOutError);
   }
 
-  getConsumer({ regionConsumer, accessId, secretId, batchSizeConsumer, urlQueue }): Consumer {
-
-    return this.consumer;
+  private async handleMessage(message: AWS.SQS.Message) {
+    console.log(message);
   }
 
-  startConsumer(regionConsumer, accessId, secretId, batchSizeConsumer, urlQueue): void {
-    this.getConsumer({
-      regionConsumer,
-      accessId,
-      secretId,
-      batchSizeConsumer,
-      urlQueue,
-    });
-    this.consumer.start();
-  }
-
-  stopConsumer(): void {
+  stop(): void {
     if (this.consumer) {
       this.consumer.stop();
     }
   }
+
+  start(): void {
+    if (this.consumer) {
+      this.consumer.start();
+    }
+  }
+
+  onError(err): void {
+    console.error(err);
+  }
+
+  onProcessingError(err): void {
+    console.error(err);
+  }
+
+  onTimeOutError(err): void {
+    console.error(err);
+  }
+}
+
+interface OptionsConsumer {
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  queueUrl: string;
+  batchSize: number;
 }
