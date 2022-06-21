@@ -8,7 +8,7 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(api);
 
-const port = process.env.PORT || 9000;
+const port = process.env.PORT || 9001;
 app.listen(port, () => {
   console.log(`Aplicação - Ativa :D | ${port}`);
 });
