@@ -1,34 +1,41 @@
-```markdown
 # node-sqs-consumer
 
-## Description
-
-A standard software project focused on reliably consuming SQS messages.
+Small TypeScript service that polls an AWS SQS queue with
+[`sqs-consumer`](https://github.com/bbc/sqs-consumer) and exposes a minimal Express
+endpoint (`GET /` returns `{ "message": "hello" }`).
 
 ## Installation
 
-1.  Clone the repository: `git clone https://github.com/your-username/node-sqs-consumer.git`
-2.  Navigate to the project directory: `cd node-sqs-consumer`
-3.  Install dependencies: `npm install`
-4.  Configure environment variables (if needed - see .vscode)
+```bash
+git clone https://github.com/juninmd/node-sqs-consumer.git
+cd node-sqs-consumer
+yarn install
+```
+
+## Configuration
+
+Environment variables (read from the process or from `envs/.env-<NODE_ENV>`, which is git-ignored):
+
+| Variable | Description |
+|---|---|
+| `AWS_REGION` | AWS region of the queue |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | AWS credentials |
+| `AWS_QUEUE_URL` | Full URL of the SQS queue |
+| `AWS_BATCH_SIZE` | Optional. Messages per poll; the `sqs-consumer` default is used when unset |
+| `PORT` | Optional. HTTP port, default `9001` |
 
 ## Usage
 
-1.  **Define your SQS Queue:** Create a SQS queue in your AWS account.
-2.  **Create a Consumer Application:**  Use `npm run consumer` to generate a consumer application.
-3.  **Configure the Consumer:** Modify the `config.json` file to point to your queue and handle message processing.
-4.  **Run the Application:** Execute `npm start` or `node index.js` to start the consumer.
-
-**Key Files:**
-
-*   `.eslintrc.js`: ESLint configuration for code linting.
-*   `.gitignore`: Specifies files to ignore for Git.
-*   `.prettierrc`: Prettier configuration for code formatting.
-*   .vscode: VS Code settings.
-*   `package.json`: Project metadata and dependencies.
-*   `src/`: Contains the main application logic and data structures.
-*   `tsconfig.build.json`: TypeScript configuration for compilation.
-*   `tsconfig.json`: TypeScript configuration for compilation.
-*   `yarn.lock`: Yarn lock file for dependency management.
-
+```bash
+NODE_ENV=development npx ts-node src/index.ts
 ```
+
+Messages are handled in `src/consumer/index.ts` (`handleMessage`, which currently just logs them).
+On `SIGTERM`/`SIGINT` the consumer stops polling so in-flight messages can finish.
+
+## Layout
+
+* `src/index.ts`: entry point (env loading, consumer start, graceful shutdown)
+* `src/consumer/`: SQS consumer wrapper
+* `src/api/`, `src/server.ts`: Express app
+* `src/configs/`, `src/tools/`: configuration and env loading
