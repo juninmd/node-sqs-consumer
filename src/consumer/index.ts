@@ -71,5 +71,5 @@ interface OptionsConsumer {
   accessKeyId: string;
   secretAccessKey: string;
   queueUrl: string;
-  batchSize: number;
+  batchSize?: number;
 }
